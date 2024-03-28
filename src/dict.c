@@ -43,13 +43,15 @@ static unsigned int dict_force_resize_ratio = 4;
 
 /* -------------------------- types ----------------------------------------- */
 struct dictEntry {
+    //键
     void *key;
-    union {
+union {
         void *val;
         uint64_t u64;
         int64_t s64;
         double d;
-    } v;
+    } v; //值
+    //下一个Entry的指针
     struct dictEntry *next;     /* Next entry in the same hash bucket. */
 };
 
