@@ -1450,10 +1450,10 @@ static int dictTypeResizeAllowed(dict *d, size_t size) {
  * and there is nothing else we need to do about this dictionary currently. While DICT_ERR indicates
  * that expand has not been triggered (may be try shrinking?)*/
 int dictExpandIfNeeded(dict *d) {
-    /* Incremental rehashing already in progress. Return. */
+    /*  正在扩容，则返回*/
     if (dictIsRehashing(d)) return DICT_OK;
 
-    /* If the hash table is empty expand it to the initial size. */
+    /*如果哈希表为空则设置为默认大小4 */
     if (DICTHT_SIZE(d->ht_size_exp[0]) == 0) {
         dictExpand(d, DICT_HT_INITIAL_SIZE);
         return DICT_OK;
@@ -1462,13 +1462,14 @@ int dictExpandIfNeeded(dict *d) {
     /* If we reached the 1:1 ratio, and we are allowed to resize the hash
      * table (global setting) or we should avoid it but the ratio between
      * elements/buckets is over the "safe" threshold, we resize doubling
-     * the number of buckets. */
+     * the number of buckets.   当负载因子达到1以上，并且没有执行bgwrite等操作*/
     if ((dict_can_resize == DICT_RESIZE_ENABLE &&
          d->ht_used[0] >= DICTHT_SIZE(d->ht_size_exp[0])) ||
         (dict_can_resize != DICT_RESIZE_FORBID &&
          d->ht_used[0] >= dict_force_resize_ratio * DICTHT_SIZE(d->ht_size_exp[0])))
     {
         if (dictTypeResizeAllowed(d, d->ht_used[0] + 1))
+            //扩容大小为used+1，底层会对扩容大小做判断，实际上找的是第一个大于等于used+1的2^n
             dictExpand(d, d->ht_used[0] + 1);
         return DICT_OK;
     }
